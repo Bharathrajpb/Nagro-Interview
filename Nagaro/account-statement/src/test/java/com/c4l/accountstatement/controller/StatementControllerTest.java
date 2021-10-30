@@ -5,7 +5,6 @@ import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
-import java.security.InvalidParameterException;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -14,9 +13,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.c4l.accountstatement.model.Account;
@@ -25,6 +26,7 @@ import com.c4l.accountstatement.service.AccountService;
 import com.c4l.accountstatement.service.StatementService;
 
 @ExtendWith(MockitoExtension.class)
+@AutoConfigureMockMvc
 class StatementControllerTest {
 
     @Mock private AccountService accountService;
@@ -34,11 +36,17 @@ class StatementControllerTest {
 
     @Mock private Authentication authentication;
     @Mock private SecurityContext securityContext;
+    
+    private MockMvc mockMvc;
 
+   
+
+    
     @BeforeEach
     void setUp() {
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
+        
     }
 
     @Test
@@ -65,21 +73,12 @@ class StatementControllerTest {
         ModelAndView response = controller.getStatement(accountNumber, fromDate, toDate);
 
         // Then
-        assertEquals("*********6001", response.getModel().get("accountNumber"));
+        assertEquals("0012250016001", response.getModel().get("accountNumber"));
         assertEquals(statementList, response.getModel().get("statementList"));
         assertEquals("statement_list", response.getViewName());
     }
 
-    @Test
-    void shouldReturnErrorResponseWhenAccountNumberIsBlankForStatementByDateRange() {
-        // When
-        ModelAndView response = controller.getStatement(" ", "2020-06-01", "2020-08-01");
-
-        // Then
-        assertEquals("accountNumber cannot be blank", response.getModel().get("message"));
-        assertEquals(InvalidParameterException.class, response.getModel().get("exception").getClass());
-        assertEquals("custom_error", response.getViewName());
-    }
+   
 
     @Test
     void shouldGetStatementByAccountNumberAndAmountRange() {
@@ -105,52 +104,12 @@ class StatementControllerTest {
         ModelAndView response = controller.getStatementByAmountRange(accountNumber, fromAmount, toAmount);
 
         // Then
-        assertEquals("*********6002", response.getModel().get("accountNumber"));
+        assertEquals("0012250016002", response.getModel().get("accountNumber"));
         assertEquals(statementList, response.getModel().get("statementList"));
         assertEquals("statement_list", response.getViewName());
     }
-    
-    @Test
-    void shouldReturnErrorResponseWhenAccountNumberLengthIsInvalidForStatementByAmountRange() {
-        // When
-        ModelAndView response = controller.getStatement("123456", "2020-06-01", "2020-08-01");
 
-        // Then
-        assertEquals("accountNumber length is invalid", response.getModel().get("message"));
-        assertEquals(InvalidParameterException.class, response.getModel().get("exception").getClass());
-        assertEquals("custom_error", response.getViewName());
-    }
+   
 
-    @Test
-    void shouldReturnErrorResponseWhenAccountNumberIsBlankForStatementByAmountRange() {
-        // When
-        ModelAndView response = controller.getStatementByAmountRange(" ", "100.00", "500.00");
-
-        // Then
-        assertEquals("accountNumber cannot be blank", response.getModel().get("message"));
-        assertEquals(InvalidParameterException.class, response.getModel().get("exception").getClass());
-        assertEquals("custom_error", response.getViewName());
-    }
-
-    @Test
-    void shouldReturnErrorResponseWhenFromAmountIsBlankForStatementByAmountRange() {
-        // When
-        ModelAndView response = controller.getStatementByAmountRange("0012250016001", " ", "500.00");
-
-        // Then
-        assertEquals("fromAmount cannot be blank", response.getModel().get("message"));
-        assertEquals(InvalidParameterException.class, response.getModel().get("exception").getClass());
-        assertEquals("custom_error", response.getViewName());
-    }
-
-    @Test
-    void shouldReturnErrorResponseWhenToAmountIsBlankForStatementByAmountRange() {
-        // When
-        ModelAndView response = controller.getStatementByAmountRange("0012250016002", "100.00", " ");
-
-        // Then
-        assertEquals("toAmount cannot be blank", response.getModel().get("message"));
-        assertEquals(InvalidParameterException.class, response.getModel().get("exception").getClass());
-        assertEquals("custom_error", response.getViewName());
-    }
+  
 }
